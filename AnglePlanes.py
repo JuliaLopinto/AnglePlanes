@@ -171,49 +171,52 @@ class AnglePlanesWidget:
 
 
     def onComputeBox(self):
+        self.onReload("EasyClip")
         #--------------------------- Box around the model --------------------------#
-        numNodes = slicer.mrmlScene.GetNumberOfNodesByClass("vtkMRMLModelNode")
-        for i in range (3,numNodes):
-            self.elements = slicer.mrmlScene.GetNthNodeByClass(i,"vtkMRMLModelNode" )
-            print self.elements.GetName()
-            node = slicer.util.getNode(self.elements.GetName())
-            polydata = node.GetPolyData()
-            bound = polydata.GetBounds()
-            print "bound", bound
+        node = slicer.util.getNode(self.elements.GetName())
+        polydata = node.GetPolyData()
+        bound = polydata.GetBounds()
+        print "bound", bound
 
-            dimX = bound[1]-bound[0]
-            dimY = bound[3]-bound[2]
-            dimZ = bound[5]-bound[4]
+        dimX = bound[1]-bound[0]
+        dimY = bound[3]-bound[2]
+        dimZ = bound[5]-bound[4]
 
-            print "dimension X :", dimX
-            print "dimension Y :", dimY
-            print "dimension Z :", dimZ
+        print "dimension X :", dimX
+        print "dimension Y :", dimY
+        print "dimension Z :", dimZ
 
-            dimX = dimX + 10
-            dimY = dimY + 20
-            dimZ = dimZ + 20
+        dimX = dimX + 10
+        dimY = dimY + 20
+        dimZ = dimZ + 20
 
-            center = polydata.GetCenter()
-            print "Center polydata :", center
+        center = polydata.GetCenter()
+        print "Center polydata :", center
 
-            # Creation of an Image
-            self.image = sitk.Image(int(dimX), int(dimY), int(dimZ), sitk.sitkInt16)
+        # Creation of an Image
+        self.image = sitk.Image(int(dimX), int(dimY), int(dimZ), sitk.sitkInt16)
 
-            dir = (-1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 1.0)
-            self.image.SetDirection(dir)
+        dir = (-1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 1.0)
+        self.image.SetDirection(dir)
 
-            spacing = (1,1,1)
-            self.image.SetSpacing(spacing)
+        spacing = (1,1,1)
+        self.image.SetSpacing(spacing)
 
-            tab = [-center[0]+dimX/2,-center[1]+dimY/2,center[2]-dimZ/2]
-            print tab
-            self.image.SetOrigin(tab)
+        tab = [-center[0]+dimX/2,-center[1]+dimY/2,center[2]-dimZ/2]
+        print tab
+        self.image.SetOrigin(tab)
 
-            writer = sitk.ImageFileWriter()
-            writer.SetFileName("Box.nrrd")
-            writer.Execute(self.image)
 
-            slicer.util.loadVolume("Box.nrrd")
+        writer = sitk.ImageFileWriter()
+        tempPath = slicer.app.temporaryPath
+        filename = "Box.nrrd"
+        filenameFull=os.path.join(tempPath,filename)
+        print filenameFull
+        writer.SetFileName(str(filenameFull))
+        writer.Execute(self.image)
+
+
+        slicer.util.loadVolume(filenameFull)
 
         #------------------------ Slice Intersection Visibility ----------------------#
         numDisplayNode = slicer.mrmlScene.GetNumberOfNodesByClass("vtkMRMLModelDisplayNode")
