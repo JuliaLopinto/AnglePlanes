@@ -23,6 +23,7 @@ class AnglePlanes:
 
 class AnglePlanesWidget:
     def __init__(self, parent = None):
+      self.developerMode = True
       if not parent:
         self.parent = slicer.qMRMLWidget()
         self.parent.setLayout(qt.QVBoxLayout())
@@ -96,13 +97,12 @@ class AnglePlanesWidget:
         sampleFormLayout.addWidget(self.firstOption)
 
 
-
         self.secondOption = qt.QGroupBox("Place Landmarks to define planes")
         self.secondOption.setCheckable(True)
         self.secondOption.setChecked(False)
         # self.secondOption.connect('clicked(bool)', self.secondOptionClicked)
 
-        self.textFirstOption = qt.QLabel("Define a plane using 3 landmarks.")
+        self.textSecondOption = qt.QLabel("Define a plane using 3 landmarks.")
 
 
         self.addLandMark = qt.QPushButton("Add LandMarks")
@@ -113,7 +113,7 @@ class AnglePlanesWidget:
         # self.addLandMark.connect('clicked()', self.addLandMarkClicked)
 
         vbox1 = qt.QVBoxLayout()
-        vbox1.addWidget(self.textFirstOption)
+        vbox1.addWidget(self.textSecondOption)
         vbox1.addWidget(self.addLandMark)
         vbox1.addWidget(self.placePlaneButton)
         vbox1.addStretch(1)
@@ -170,8 +170,25 @@ class AnglePlanesWidget:
         self.greenslice.AddObserver(self.greenslice.SliceToRASFlag, self.modify)
 
 
+        if self.developerMode:
+            buttonFrame = qt.QFrame(self.parent)
+            buttonFrame.setLayout(qt.QHBoxLayout())
+            self.layout.addWidget(buttonFrame)
+
+            self.reloadButton = qt.QPushButton("Reload")
+            buttonFrame.layout().addWidget(self.reloadButton)
+            self.reloadButton.connect('clicked()', self.onReload)
+
+
+            # Add vertical spacer
+            self.layout.addStretch(1)
+
+    def onReload(self,moduleName="AnglePlanes"):
+        print "Reload"
+        globals()[moduleName] = slicer.util.reloadScriptedModule(moduleName)
+
     def onComputeBox(self):
-        self.onReload("EasyClip")
+        self.onReload("AnglePlanes")
         #--------------------------- Box around the model --------------------------#
         node = slicer.util.getNode(self.elements.GetName())
         polydata = node.GetPolyData()
